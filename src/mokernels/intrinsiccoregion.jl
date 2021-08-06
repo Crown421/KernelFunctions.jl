@@ -38,26 +38,21 @@ function IntrinsicCoregionMOKernel(kernel::Kernel, B::AbstractMatrix)
     return IntrinsicCoregionMOKernel{typeof(kernel),typeof(B)}(kernel, B)
 end
 
-function (k::IntrinsicCoregionMOKernel)((x, px)::Tuple{Any,Int}, (y, py)::Tuple{Any,Int})
+function (k::IntrinsicCoregionMOKernel)((x, px)::Tuple{T,Int}, (y, py)::Tuple{T,Int}) where T
+    # @boundscheck println("Checking bounds")
+    # ( if size(k.B,1)<px || size(k.B,2)<py
+    #     error("Inputs are too large for this kernel")
+    # end)
     return k.B[px, py] * k.kernel(x, y)
 end
 
-function kernelmatrix(
-    k::IntrinsicCoregionMOKernel, x::MOI, y::MOI
-) where {MOI<:IsotopicMOInputsUnion}
-    @assert x.out_dim == y.out_dim
-    Kfeatures = kernelmatrix(k.kernel, x.x, y.x)
-    return _kernelmatrix_kron_helper(x, Kfeatures, k.B)
-end
-
-if VERSION >= v"1.6"
-    function kernelmatrix!(
-        K::AbstractMatrix, k::IntrinsicCoregionMOKernel, x::MOI, y::MOI
-    ) where {MOI<:IsotopicMOInputsUnion}
-        @assert x.out_dim == y.out_dim
-        Kfeatures = kernelmatrix(k.kernel, x.x, y.x)
-        return _kernelmatrix_kron_helper!(K, x, Kfeatures, k.B)
-    end
+# convenience function
+function (k::IntrinsicCoregionMOKernel)(x::Vector{T}, y::Vector{T}) where T <: Real
+    @assert size(x) == size(y)
+    outputsize = size(k.B, 1)
+    xMO = MOInputIsotopicByFeatures([x], outputsize)
+    yMO = MOInputIsotopicByFeatures([y], outputsize)
+    kernelmatrix(k, xMO, yMO)
 end
 
 function Base.show(io::IO, k::IntrinsicCoregionMOKernel)
