@@ -23,21 +23,18 @@ struct IndependentMOKernel{Tkernel<:Kernel} <: MOKernel
     kernel::Tkernel
 end
 
-function (κ::IndependentMOKernel)((x, px)::Tuple{Any,Int}, (y, py)::Tuple{Any,Int})
-    return κ.kernel(x, y) * (px == py)
+# kernel function should be symmetric
+function (κ::IndependentMOKernel)((x, px)::Tuple{T,Int}, (y, py)::Tuple{T,Int}) where T
+    if px == py
+        return κ.kernel(x, y)
+    else
+        retType = Base.return_types(κ.kernel, (typeof(x), typeof(y)))[1]
+        return zero(retType)
+    end
 end
 
-function _kernelmatrix_kron_helper(::MOInputIsotopicByFeatures, Kfeatures, B)
-    return kron(Kfeatures, B)
-end
-
-function _kernelmatrix_kron_helper(::MOInputIsotopicByOutputs, Kfeatures, B)
-    return kron(B, Kfeatures)
-end
-
-function kernelmatrix(
-    k::IndependentMOKernel, x::MOI, y::MOI
-) where {MOI<:IsotopicMOInputsUnion}
+# this function never gets called it seems
+function kernelmatrix(k::IndependentMOKernel, x::MOInput, y::MOInput)
     @assert x.out_dim == y.out_dim
     Kfeatures = kernelmatrix(k.kernel, x.x, y.x)
     mtype = eltype(Kfeatures)
