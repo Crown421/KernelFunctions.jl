@@ -24,7 +24,8 @@ struct IndependentMOKernel{Tkernel<:Kernel} <: MOKernel
 end
 
 # kernel function should be symmetric
-function (κ::IndependentMOKernel)((x, px)::Tuple{T,Int}, (y, py)::Tuple{T,Int}) where T
+# would really like (κ::IndependentMOKernel)((x, px)::Tuple{T,Int}, (y, py)::Tuple{T,Int}) where T, but seems to cause autodiff problems
+function (κ::IndependentMOKernel)((x, px)::Tuple{Any,Int}, (y, py)::Tuple{Any,Int})
     if px == py
         return κ.kernel(x, y)
     else
@@ -60,6 +61,21 @@ if VERSION >= v"1.6"
             K, x, Ktmp, Matrix{mtype}(I, x.out_dim, x.out_dim)
         )
     end
+end
+
+export kernelmatrix2
+function kernelmatrix2(k::IndependentMOKernel, x::MOInputIsotopicByFeatures, y::MOInputIsotopicByFeatures)
+    @assert x.out_dim == y.out_dim
+    Ktmp = kernelmatrix(k.kernel, x.x, y.x)
+    mtype = eltype(Ktmp)
+    kron(Ktmp, Matrix{mtype}(I, x.out_dim, x.out_dim))
+end
+
+function kernelmatrix2(k::IndependentMOKernel, x::MOInputIsotopicByOutputs, y::MOInputIsotopicByOutputs)
+    @assert x.out_dim == y.out_dim
+    Ktmp = kernelmatrix(k.kernel, x.x, y.x)
+    mtype = eltype(Ktmp)
+    kron(Matrix{mtype}(I, x.out_dim, x.out_dim), Ktmp)
 end
 
 function Base.show(io::IO, k::IndependentMOKernel)
