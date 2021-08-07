@@ -60,6 +60,20 @@ if VERSION >= v"1.6"
     end
 end
 
+# kernelmatrix (test for now)
+export kernelmatrix2
+function kernelmatrix2(k::IntrinsicCoregionMOKernel, x::MOInputIsotopicByFeatures, y::MOInputIsotopicByFeatures)
+    @assert x.out_dim == y.out_dim == size(k.B, 1)
+    Ktmp = kernelmatrix(k.kernel, x.x, y.x)
+    kron(Ktmp, k.B)
+end
+
+function kernelmatrix2(k::IntrinsicCoregionMOKernel, x::MOInputIsotopicByOutputs, y::MOInputIsotopicByOutputs)
+    @assert x.out_dim == y.out_dim == size(k.B, 1)
+    Ktmp = kernelmatrix(k.kernel, x.x, y.x)
+    kron(k.B, Ktmp)
+end
+
 function Base.show(io::IO, k::IntrinsicCoregionMOKernel)
     return print(
         io, "Intrinsic Coregion Kernel: ", k.kernel, " with ", size(k.B, 1), " outputs"
