@@ -24,6 +24,9 @@
     icoregionkernel2 = IntrinsicCoregionMOKernel(; kernel=kernel, B=B)
     @test icoregionkernel == icoregionkernel2
 
+    icoregionkernel2 = IntrinsicCoregionMOKernel(kernel, B)
+    @test icoregionkernel == icoregionkernel2
+
     @test icoregionkernel.B == B
     @test icoregionkernel.kernel == kernel
     @test icoregionkernel(XIF[1], XIF[1]) ≈
@@ -35,6 +38,12 @@
     KernelFunctions.TestUtils.test_interface(icoregionkernel, XIF, YIF, ZIF)
 
     KernelFunctions.TestUtils.test_interface(icoregionkernel, XIO, YIO, ZIO)
+
+    # test convenience function using kronecker product
+    @test icoregionkernel(X.x[1], X.x[2]) ≈ icoregionkernel.kernel(X.x[1], X.x[2])*B
+
+    # kernelmatrix
+    @test kernelmatrix(icoregionkernel, X) ≈ kron(kernelmatrix(kernel, X.x), B)
 
     KernelFunctions.TestUtils.test_interface(
         icoregionkernel, Vector{Tuple{Float64,Int}}; dim_out=dims.out
