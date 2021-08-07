@@ -7,21 +7,17 @@
     A = randn(dims.out, r)
     B = A * transpose(A) + Diagonal(rand(dims.out))
 
-    # XIF = [(rand(dims.in), rand(1:(dims.out))) for i in 1:(dims.obs)]
+    # X = [(rand(dims.in), rand(1:(dims.out))) for i in 1:(dims.obs)]
     x = [rand(dims.in) for _ in 1:2]
-    XIF = KernelFunctions.MOInputIsotopicByFeatures(x, dims.out)
-    XIO = KernelFunctions.MOInputIsotopicByOutputs(x, dims.out)
-    y = [rand(dims.in) for _ in 1:2]
-    YIF = KernelFunctions.MOInputIsotopicByFeatures(y, dims.out)
-    YIO = KernelFunctions.MOInputIsotopicByOutputs(y, dims.out)
-    z = [rand(dims.in) for _ in 1:3]
-    ZIF = KernelFunctions.MOInputIsotopicByFeatures(z, dims.out)
-    ZIO = KernelFunctions.MOInputIsotopicByOutputs(z, dims.out)
+    X = KernelFunctions.MOInputIsotopicByFeatures(x, dims.out)
 
     kernel = SqExponentialKernel()
     icoregionkernel = IntrinsicCoregionMOKernel(kernel, B)
 
     icoregionkernel2 = IntrinsicCoregionMOKernel(; kernel=kernel, B=B)
+    @test icoregionkernel == icoregionkernel2
+
+    icoregionkernel2 = IntrinsicCoregionMOKernel(kernel, B)
     @test icoregionkernel == icoregionkernel2
 
     @test icoregionkernel.B == B
@@ -35,6 +31,12 @@
     KernelFunctions.TestUtils.test_interface(icoregionkernel, XIF, YIF, ZIF)
 
     KernelFunctions.TestUtils.test_interface(icoregionkernel, XIO, YIO, ZIO)
+
+    # test convenience function using kronecker product
+    @test icoregionkernel(X.x[1], X.x[2]) ≈ icoregionkernel.kernel(X.x[1], X.x[2])*B
+
+    # kernelmatrix
+    @test kernelmatrix(icoregionkernel, X) ≈ kron(kernelmatrix(kernel, X.x), B)
 
     KernelFunctions.TestUtils.test_interface(
         icoregionkernel, Vector{Tuple{Float64,Int}}; dim_out=dims.out
