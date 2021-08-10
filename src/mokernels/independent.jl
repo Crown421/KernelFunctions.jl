@@ -34,49 +34,35 @@ function (κ::IndependentMOKernel)((x, px)::Tuple{Any,Int}, (y, py)::Tuple{Any,I
     end
 end
 
-# this function never gets called it seems
-function kernelmatrix(k::IndependentMOKernel, x::MOInput, y::MOInput)
-    @assert x.out_dim == y.out_dim
-    Kfeatures = kernelmatrix(k.kernel, x.x, y.x)
-    mtype = eltype(Kfeatures)
-    return _kernelmatrix_kron_helper(x, Kfeatures, Eye{mtype}(x.out_dim))
-end
-
-if VERSION >= v"1.6"
-    function _kernelmatrix_kron_helper!(K, ::MOInputIsotopicByFeatures, Kfeatures, B)
-        return kron!(K, Kfeatures, B)
-    end
-
-    function _kernelmatrix_kron_helper!(K, ::MOInputIsotopicByOutputs, Kfeatures, B)
-        return kron!(K, B, Kfeatures)
-    end
-
-    function kernelmatrix!(
-        K::AbstractMatrix, k::IndependentMOKernel, x::MOI, y::MOI
-    ) where {MOI<:IsotopicMOInputsUnion}
-        @assert x.out_dim == y.out_dim
-        Ktmp = kernelmatrix(k.kernel, x.x, y.x)
-        mtype = eltype(Ktmp)
-        return _kernelmatrix_kron_helper!(
-            K, x, Ktmp, Matrix{mtype}(I, x.out_dim, x.out_dim)
-        )
-    end
-end
-
-export kernelmatrix2
-function kernelmatrix2(k::IndependentMOKernel, x::MOInputIsotopicByFeatures, y::MOInputIsotopicByFeatures)
+function kernelmatrix(k::IndependentMOKernel, x::MOInputIsotopicByFeatures, y::MOInputIsotopicByFeatures)
     @assert x.out_dim == y.out_dim
     Ktmp = kernelmatrix(k.kernel, x.x, y.x)
     mtype = eltype(Ktmp)
     kron(Ktmp, Matrix{mtype}(I, x.out_dim, x.out_dim))
 end
 
-function kernelmatrix2(k::IndependentMOKernel, x::MOInputIsotopicByOutputs, y::MOInputIsotopicByOutputs)
+function kernelmatrix!(K::AbstractMatrix, k::IndependentMOKernel, x::MOInputIsotopicByFeatures, y::MOInputIsotopicByFeatures)
+    @assert x.out_dim == y.out_dim
+    Ktmp = kernelmatrix(k.kernel, x.x, y.x)
+    mtype = eltype(Ktmp)
+    kron!(K, Ktmp, Matrix{mtype}(I, x.out_dim, x.out_dim))
+end
+
+
+function kernelmatrix(k::IndependentMOKernel, x::MOInputIsotopicByOutputs, y::MOInputIsotopicByOutputs)
     @assert x.out_dim == y.out_dim
     Ktmp = kernelmatrix(k.kernel, x.x, y.x)
     mtype = eltype(Ktmp)
     kron(Matrix{mtype}(I, x.out_dim, x.out_dim), Ktmp)
 end
+
+function kernelmatrix!(K::AbstractMatrix, k::IndependentMOKernel, x::MOInputIsotopicByOutputs, y::MOInputIsotopicByOutputs)
+    @assert x.out_dim == y.out_dim
+    Ktmp = kernelmatrix(k.kernel, x.x, y.x)
+    mtype = eltype(Ktmp)
+    kron!(K, Matrix{mtype}(I, x.out_dim, x.out_dim), Ktmp)
+end
+
 
 function Base.show(io::IO, k::IndependentMOKernel)
     return print(io, string("Independent Multi-Output Kernel\n\t", string(k.kernel)))
