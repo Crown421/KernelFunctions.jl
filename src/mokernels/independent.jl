@@ -65,6 +65,35 @@ if VERSION >= v"1.6"
     end
 end
 
+function _kronkernelmatrix(
+    Ktmp, B, ::MOInputIsotopicByOutputs, ::ExplicitKroneckerKernelMatrix
+)
+    return kron(B, Ktmp)
+end
+
+function kernelmatrix(
+    k::IndependentMOKernel, x::MOI, y::MOI; matrixtype::MT=ExplicitKroneckerKernelMatrix()
+) where {MOI<:AbstractMOInput,MT<:KroneckerKernelMatrix}
+    @assert x.out_dim == y.out_dim
+    Ktmp = kernelmatrix(k.kernel, x.x, y.x)
+    mtype = eltype(Ktmp)
+    return _kronkernelmatrix(Ktmp, Matrix{mtype}(I, x.out_dim, x.out_dim), x, matrixtype)
+end
+
+function kernelmatrix(
+    k::IndependentMOKernel, x::MOI; matrixtype::MT=ExplicitKroneckerKernelMatrix()
+) where {MOI<:AbstractMOInput,MT<:KroneckerKernelMatrix}
+    return kernelmatrix(k, x, x; matrixtype)
+end
+
+function _kronkernelmatrix!(K, Ktmp, B, ::MOInputIsotopicByFeatures)
+    return kron!(K, Ktmp, B)
+end
+
+function _kronkernelmatrix!(K, Ktmp, B, ::MOInputIsotopicByOutputs)
+    return kron!(K, B, Ktmp)
+end
+
 function kernelmatrix!(
     K::AbstractMatrix,
     k::IndependentMOKernel,
@@ -74,28 +103,7 @@ function kernelmatrix!(
     @assert x.out_dim == y.out_dim
     Ktmp = kernelmatrix(k.kernel, x.x, y.x)
     mtype = eltype(Ktmp)
-    return kron!(K, Ktmp, Matrix{mtype}(I, x.out_dim, x.out_dim))
-end
-
-function kernelmatrix(
-    k::IndependentMOKernel, x::MOInputIsotopicByOutputs, y::MOInputIsotopicByOutputs
-)
-    @assert x.out_dim == y.out_dim
-    Ktmp = kernelmatrix(k.kernel, x.x, y.x)
-    mtype = eltype(Ktmp)
-    return kron(Matrix{mtype}(I, x.out_dim, x.out_dim), Ktmp)
-end
-
-function kernelmatrix!(
-    K::AbstractMatrix,
-    k::IndependentMOKernel,
-    x::MOInputIsotopicByOutputs,
-    y::MOInputIsotopicByOutputs,
-)
-    @assert x.out_dim == y.out_dim
-    Ktmp = kernelmatrix(k.kernel, x.x, y.x)
-    mtype = eltype(Ktmp)
-    return kron!(K, Matrix{mtype}(I, x.out_dim, x.out_dim), Ktmp)
+    return _kronkernelmatrix!(K, Ktmp, Matrix{mtype}(I, x.out_dim, x.out_dim), x)
 end
 
 function Base.show(io::IO, k::IndependentMOKernel)

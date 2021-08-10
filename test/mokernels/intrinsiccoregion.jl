@@ -53,6 +53,16 @@
         icoregionkernel, Vector{Tuple{Float64,Int}}; dim_out=dims.out
     )
 
+    # in-place
+    kmsize = dims.out * length(x)
+    K = zeros(kmsize, kmsize)
+    kernelmatrix!(K, icoregionkernel, X, X)
+    @test K ≈ icoregionkernel.(X, permutedims(X))
+
+    K = zeros(kmsize, kmsize)
+    kernelmatrix!(K, icoregionkernel, X_alt, X_alt)
+    @test K ≈ icoregionkernel.(X_alt, permutedims(X_alt))
+
     test_ADs(icoregionkernel; dims=dims)
 
     @test string(icoregionkernel) ==
