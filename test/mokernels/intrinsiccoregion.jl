@@ -40,7 +40,8 @@
     KernelFunctions.TestUtils.test_interface(icoregionkernel, XIO, YIO, ZIO)
 
     # test convenience function using kronecker product
-    @test matrixkernel(icoregionkernel, X.x[1], X.x[2]) ≈ icoregionkernel.kernel(X.x[1], X.x[2])*icoregionkernel.B
+    @test matrixkernel(icoregionkernel, X.x[1], X.x[2]) ≈
+          icoregionkernel.kernel(X.x[1], X.x[2]) * icoregionkernel.B
 
     # kernelmatrix
     @test kernelmatrix(icoregionkernel, X) ≈ icoregionkernel.(X, permutedims(X))
