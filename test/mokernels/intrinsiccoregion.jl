@@ -33,10 +33,13 @@
     KernelFunctions.TestUtils.test_interface(icoregionkernel, XIO, YIO, ZIO)
 
     # test convenience function using kronecker product
-    @test icoregionkernel(X.x[1], X.x[2]) ≈ icoregionkernel.kernel(X.x[1], X.x[2])*B
+    @test matrixkernel(icoregionkernel, X.x[1], X.x[2]) ≈ icoregionkernel.kernel(X.x[1], X.x[2])*icoregionkernel.B
 
     # kernelmatrix
-    @test kernelmatrix(icoregionkernel, X) ≈ kron(kernelmatrix(kernel, X.x), B)
+    @test kernelmatrix(icoregionkernel, X) ≈ icoregionkernel.(X, permutedims(X))
+
+    X_alt = KernelFunctions.MOInputIsotopicByOutputs(x, dims.out)
+    @test kernelmatrix(icoregionkernel, X_alt) ≈ icoregionkernel.(X_alt, permutedims(X_alt))
 
     KernelFunctions.TestUtils.test_interface(
         icoregionkernel, Vector{Tuple{Float64,Int}}; dim_out=dims.out
