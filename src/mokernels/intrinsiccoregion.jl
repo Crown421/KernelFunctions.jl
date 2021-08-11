@@ -62,22 +62,18 @@ end
 
 function kernelmatrix(
     k::IntrinsicCoregionMOKernel, x::MOI, y::MOI
-) where {MOI<:AbstractMOInput}
+) where {MOI<:MOInputsUnion}
     @assert x.out_dim == y.out_dim
     Ktmp = kernelmatrix(k.kernel, x.x, y.x)
     return _kronkernelmatrix(Ktmp, k.B, x)
 end
 
-function kernelmatrix(k::IntrinsicCoregionMOKernel, x::MOI) where {MOI<:AbstractMOInput}
-    return kernelmatrix(k, x, x)
-end
-
 function kernelmatrix!(
     K::AbstractMatrix,
     k::IntrinsicCoregionMOKernel,
-    x::MOInputIsotopicByFeatures,
-    y::MOInputIsotopicByFeatures,
-)
+    x::MOI,
+    y::MOI,
+) where {MOI <: MOInputsUnion}
     @assert x.out_dim == y.out_dim
     Ktmp = kernelmatrix(k.kernel, x.x, y.x)
     return _kronkernelmatrix!(K, Ktmp, k.B, x)
