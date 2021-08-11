@@ -69,11 +69,8 @@ function kernelmatrix(
 end
 
 function kernelmatrix!(
-    K::AbstractMatrix,
-    k::IntrinsicCoregionMOKernel,
-    x::MOI,
-    y::MOI,
-) where {MOI <: MOInputsUnion}
+    K::AbstractMatrix, k::IntrinsicCoregionMOKernel, x::MOI, y::MOI
+) where {MOI<:MOInputsUnion}
     @assert x.out_dim == y.out_dim
     Ktmp = kernelmatrix(k.kernel, x.x, y.x)
     return _kronkernelmatrix!(K, Ktmp, k.B, x)
