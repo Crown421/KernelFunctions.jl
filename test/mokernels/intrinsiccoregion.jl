@@ -24,7 +24,7 @@
     icoregionkernel2 = IntrinsicCoregionMOKernel(; kernel=kernel, B=B)
     @test icoregionkernel == icoregionkernel2
 
-    icoregionkernel2 = IntrinsicCoregionMOKernel(kernel, B)
+    icoregionkernel2 = IntrinsicCoregionMOKernel(; kernel, B)
     @test icoregionkernel == icoregionkernel2
 
     @test icoregionkernel.B == B
@@ -40,28 +40,33 @@
     KernelFunctions.TestUtils.test_interface(icoregionkernel, XIO, YIO, ZIO)
 
     # test convenience function using kronecker product
-    @test matrixkernel(icoregionkernel, X.x[1], X.x[2]) ≈
-          icoregionkernel.kernel(X.x[1], X.x[2]) * icoregionkernel.B
+    @test matrixkernel(icoregionkernel, XIF.x[1], XIF.x[2]) ≈
+          icoregionkernel.kernel(XIF.x[1], XIF.x[2]) * icoregionkernel.B
 
     # kernelmatrix
-    @test kernelmatrix(icoregionkernel, X) ≈ icoregionkernel.(X, permutedims(X))
+    KernelFunctions.TestUtils.test_interface(
+        icoregionkernel, XIF, YIF, ZIF
+    )
 
-    X_alt = KernelFunctions.MOInputIsotopicByOutputs(x, dims.out)
-    @test kernelmatrix(icoregionkernel, X_alt) ≈ icoregionkernel.(X_alt, permutedims(X_alt))
+    KernelFunctions.TestUtils.test_interface(
+        icoregionkernel, XIO, YIO, ZIO
+    )
 
     KernelFunctions.TestUtils.test_interface(
         icoregionkernel, Vector{Tuple{Float64,Int}}; dim_out=dims.out
     )
 
     # in-place
-    kmsize = dims.out * length(x)
-    K = zeros(kmsize, kmsize)
-    kernelmatrix!(K, icoregionkernel, X, X)
-    @test K ≈ icoregionkernel.(X, permutedims(X))
+    if VERSION >= v"1.6"
+        kmsize = dims.out * length(x)
+        K = zeros(kmsize, kmsize)
+        kernelmatrix!(K, icoregionkernel, XIF, XIF)
+        @test K ≈ icoregionkernel.(XIF, permutedims(XIF))
 
-    K = zeros(kmsize, kmsize)
-    kernelmatrix!(K, icoregionkernel, X_alt, X_alt)
-    @test K ≈ icoregionkernel.(X_alt, permutedims(X_alt))
+        K = zeros(kmsize, kmsize)
+        kernelmatrix!(K, icoregionkernel, XIO, XIO)
+        @test K ≈ icoregionkernel.(XIO, permutedims(XIO))
+    end
 
     test_ADs(icoregionkernel; dims=dims)
 

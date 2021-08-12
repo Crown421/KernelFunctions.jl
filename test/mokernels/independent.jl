@@ -27,22 +27,21 @@
     @test eltype(typeof(kernelmatrix(k, x2))) <: Float32
 
     ## accuracy
-    @test kernelmatrix(k, x, y) ≈ k.(x, permutedims(y))
-
-    x_alt = KernelFunctions.MOInputIsotopicByFeatures(x.x, 3)
-    y_alt = KernelFunctions.MOInputIsotopicByFeatures(y.x, 3)
-    @test kernelmatrix(k, x_alt, y_alt) ≈ k.(x_alt, permutedims(y_alt))
+    KernelFunctions.TestUtils.test_interface(k, x, y, z)
+    KernelFunctions.TestUtils.test_interface(k, xIF, yIF, zIF)
 
     # in-place
-    K = zeros(12, 12)
-    kernelmatrix!(K, k, x, y)
-    @test K ≈ k.(x, permutedims(y))
+    if VERSION >= v"1.6"
+        K = zeros(12, 12)
+        kernelmatrix!(K, k, x, y)
+        @test K ≈ k.(x, permutedims(y))
 
-    K = zeros(12, 12)
-    kernelmatrix!(K, k, x_alt, y_alt)
-    @test K ≈ k.(x_alt, permutedims(y_alt))
+        K = zeros(12, 12)
+        kernelmatrix!(K, k, xIF, yIF)
+        @test K ≈ k.(xIF, permutedims(yIF))
+    end
 
-    # type stability
+    # type stability (maybe move to test_interface?)
     x2 = MOInput(rand(Float32, 4), 2)
     @test k(x2[1], x2[2]) isa Float32
     @test k(x2[1], x2[1]) isa Float32
