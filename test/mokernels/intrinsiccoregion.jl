@@ -24,7 +24,7 @@
     icoregionkernel2 = IntrinsicCoregionMOKernel(; kernel=kernel, B=B)
     @test icoregionkernel == icoregionkernel2
 
-    icoregionkernel2 = IntrinsicCoregionMOKernel(; kernel, B)
+    icoregionkernel2 = IntrinsicCoregionMOKernel(; kernel = kernel, B = B)
     @test icoregionkernel == icoregionkernel2
 
     @test icoregionkernel.B == B
