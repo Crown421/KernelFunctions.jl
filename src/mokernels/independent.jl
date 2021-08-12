@@ -69,7 +69,7 @@ function _kronkernelmatrix(Ktmp, B, ::MOInputIsotopicByOutputs)
     return kron(B, Ktmp)
 end
 
-function kernelmatrix(k::IndependentMOKernel, x::MOI, y::MOI) where {MOI<:MOInputsUnion}
+function kernelmatrix(k::IndependentMOKernel, x::MOI, y::MOI) where {MOI<:IsotopicMOInputsUnion}
     @assert x.out_dim == y.out_dim
     Ktmp = kernelmatrix(k.kernel, x.x, y.x)
     mtype = eltype(Ktmp)
@@ -87,7 +87,7 @@ if VERSION >= v"1.6"
 
     function kernelmatrix!(
         K::AbstractMatrix, k::IndependentMOKernel, x::MOI, y::MOI
-    ) where {MOI<:MOInputsUnion}
+    ) where {MOI<:IsotopicMOInputsUnion}
         @assert x.out_dim == y.out_dim
         Ktmp = kernelmatrix(k.kernel, x.x, y.x)
         mtype = eltype(Ktmp)
