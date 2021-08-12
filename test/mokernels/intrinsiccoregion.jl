@@ -44,13 +44,9 @@
           icoregionkernel.kernel(XIF.x[1], XIF.x[2]) * icoregionkernel.B
 
     # kernelmatrix
-    KernelFunctions.TestUtils.test_interface(
-        icoregionkernel, XIF, YIF, ZIF
-    )
+    KernelFunctions.TestUtils.test_interface(icoregionkernel, XIF, YIF, ZIF)
 
-    KernelFunctions.TestUtils.test_interface(
-        icoregionkernel, XIO, YIO, ZIO
-    )
+    KernelFunctions.TestUtils.test_interface(icoregionkernel, XIO, YIO, ZIO)
 
     KernelFunctions.TestUtils.test_interface(
         icoregionkernel, Vector{Tuple{Float64,Int}}; dim_out=dims.out
