@@ -3,15 +3,15 @@
     FDM = FiniteDifferences.central_fdm(5, 1)
     N = 6
     in_dim = 3
-    out_dim = 3
-    x1IO = KernelFunctions.MOInputIsotopicByOutputs(
-        [rand(rng, in_dim) for _ in 1:N], out_dim
-    )
-    x2IO = KernelFunctions.MOInputIsotopicByOutputs(
-        [rand(rng, in_dim) for _ in 1:N], out_dim
-    )
-    x3IO = KernelFunctions.MOInputIsotopicByOutputs(
-        [rand(rng, in_dim) for _ in 1:div(N, 2)], out_dim
+    out_dim = 4
+    x1IO = KernelFunctions.MOInputIsotopicByOutputs([rand(rng, in_dim) for _ in 1:N], out_dim)
+    x2IO = KernelFunctions.MOInputIsotopicByOutputs([rand(rng, in_dim) for _ in 1:N], out_dim)
+    x3IO = KernelFunctions.MOInputIsotopicByOutputs([rand(rng, in_dim) for _ in 1:div(N,2)], out_dim)
+    H = rand(4, 6)
+    # H = rand(4, 6) + hcat(Matrix{Float64}(I, 4,4), zeros(4,2))
+
+    k = LinearMixingModelKernel(
+        [Matern32Kernel(), SqExponentialKernel(), FBMKernel(), Matern32Kernel()], H
     )
 
     latentkernels = [Matern32Kernel(), SqExponentialKernel(), FBMKernel(), Matern32Kernel()]
@@ -42,6 +42,10 @@
     x3IF = KernelFunctions.MOInputIsotopicByFeatures(x3IO.x, out_dim)
 
     TestUtils.test_interface(k, x1IF, x2IF, x3IF)
+
+    a = KernelFunctions.MOInputIsotopicByOutputs([rand(rng, in_dim)], out_dim)
+    b = KernelFunctions.MOInputIsotopicByOutputs([rand(rng, in_dim)], out_dim)
+    @test matrixkernel(k, a.x[1], b.x[1]) ≈ k.(a, permutedims(b))
 
     k = LinearMixingModelKernel(SEKernel(), H)
 
