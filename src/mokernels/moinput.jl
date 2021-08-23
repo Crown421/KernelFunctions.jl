@@ -209,6 +209,8 @@ function prepare_isotopic_multi_output_data(x::AbstractVector, y::RowVecs)
     return MOInputIsotopicByOutputs(x, size(y.X, 2)), vec(y.X)
 end
 
+IsotopicMOInputsUnion = Union{MOInputIsotopicByFeatures,MOInputIsotopicByOutputs}
+
 """
     prepare_heterotopic_multi_output_data(
         x::AbstractVector, y::AbstractVector{<:Real}, output_indices::AbstractVector{Int},
